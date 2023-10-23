@@ -5,13 +5,21 @@ import java.util.Map;
 
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.json.JsonData;
 import lombok.val;
+import static com.example.springboot_elastic_search.springboot_elastic_search.constants.ConstantInterface.*;
 
+@Component
 public class ElasticSearchUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchUtil.class);
     
     //supply back match all query to get all the employees
     public static Supplier<Query> supplier(){
@@ -38,9 +46,9 @@ public class ElasticSearchUtil {
         for(String key: map.keySet()){
             SortOptions sort = null;
             String value = map.get(key);
-            if(value.equals("asc")){
+            if(value.equals(ASC)){
                 sort = new SortOptions.Builder().field(f -> f.field(key).order(SortOrder.Asc)).build();
-            }else if(value.equals("desc")){
+            }else if(value.equals(DESC)){
                 sort = new SortOptions.Builder().field(f -> f.field(key).order(SortOrder.Desc)).build();
             }
             if(null != sort){
@@ -62,9 +70,9 @@ public class ElasticSearchUtil {
             String fieldName = "";
             String rangeCondition = null;
             String value = "";
-            if(key.contains(".")){
+            if(key.contains(DOT)){
                 String keyToSplit = key;
-                int dotIndex = keyToSplit.indexOf(".");
+                int dotIndex = keyToSplit.indexOf(DOT);
                 fieldName = keyToSplit.substring(0, dotIndex);
                 rangeCondition = keyToSplit.substring(dotIndex+1, keyToSplit.length());
                 value = map.get(key);
@@ -95,13 +103,13 @@ public class ElasticSearchUtil {
     private static List<Query> RangeQueryWithName(String fieldName, String rangeCondition, String value) {
         final List<Query> rangeQueries = new ArrayList<>();
         val rangeQuery = new RangeQuery.Builder();
-        if(rangeCondition.equals("gte"))
+        if(rangeCondition.equals(GTE))
             rangeQueries.add(Query.of(q-> q.range(rangeQuery.field(fieldName).gte(JsonData.of(value)).build())));
-        else if(rangeCondition.equals("gt"))
+        else if(rangeCondition.equals(GT))
             rangeQueries.add(Query.of(q-> q.range(rangeQuery.field(fieldName).gt(JsonData.of(value)).build())));
-        else if(rangeCondition.equals("lte"))
+        else if(rangeCondition.equals(LTE))
             rangeQueries.add(Query.of(q-> q.range(rangeQuery.field(fieldName).lte(JsonData.of(value)).build())));
-        else if(rangeCondition.equals("lt"))
+        else if(rangeCondition.equals(LT))
             rangeQueries.add(Query.of(q-> q.range(rangeQuery.field(fieldName).lt(JsonData.of(value)).build())));
         return rangeQueries;
     }
@@ -115,7 +123,7 @@ public class ElasticSearchUtil {
     //preparing match query depending on id
     private static MatchQuery matchQueryWithId(String id) {
         MatchQuery.Builder matchQuery = new MatchQuery.Builder();
-        return matchQuery.field("id").query(id)
+        return matchQuery.field(ID).query(id)
         .build();
     }
 }

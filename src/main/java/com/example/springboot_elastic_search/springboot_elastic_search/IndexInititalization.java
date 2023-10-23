@@ -1,11 +1,9 @@
 package com.example.springboot_elastic_search.springboot_elastic_search;
 
 
-import java.beans.JavaBean;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -14,25 +12,28 @@ import java.util.Optional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Component;
-
+import static com.example.springboot_elastic_search.springboot_elastic_search.constants.ConstantInterface.*;
 import com.example.springboot_elastic_search.springboot_elastic_search.entity.EmployeeCompensation1;
 import com.example.springboot_elastic_search.springboot_elastic_search.repository.EmployeeCompensation1Repository;
+
 
 @Component
 public class IndexInititalization {
     
-    public static final SimpleDateFormat formatter1=new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"); 
-
 	@Autowired
 	private EmployeeCompensation1Repository compensationRepository;
 
 	@Autowired
 	private ElasticsearchOperations esOps;
+
+    private static final Logger logger = LoggerFactory.getLogger(IndexInititalization.class);
 
     //iniatizing steps of index to work with later using API calls
     public void initializeIndex(){
@@ -43,7 +44,8 @@ public class IndexInititalization {
 
     //parsing csv file 'salary_survey-1.csv'
     private Collection<EmployeeCompensation1> parseCSV(){
-		Resource resource = new ClassPathResource("salary_survey-1.csv");
+        logger.info(String.format("ingesting docs to elastic search"));
+		Resource resource = new ClassPathResource(SALARY_SURVEY_1_CSV);
 		// Resource resource = new ClassPathResource("salary_test.csv");
 		List<EmployeeCompensation1> emps = new ArrayList<>();
 		try(
@@ -57,7 +59,7 @@ public class IndexInititalization {
 					try{
 						emp = recordPreparation(record);
 					}catch(Exception e){
-						System.out.println(" not correct formatting --> " + e);
+						logger.error("skipping record -->  %s", e.getLocalizedMessage());
 					}
 					if(emp != null && emp.isPresent()){
 						// System.out.println("adding record to list -> " + emp);
@@ -66,9 +68,9 @@ public class IndexInititalization {
 				}
 			
 		}catch(Exception e){
-			System.out.println("exception -> " + e);
+			logger.error(String.format("exception -> %s", e.getLocalizedMessage()));
 		}
-		System.out.println("records inserted --> " + emps.size());
+		logger.info("records inserted --> %d" + emps.size());
 		return emps;
 
 	}
@@ -85,7 +87,8 @@ public class IndexInititalization {
      */
     //mapping csv header with index fields and processing them as required
 	private Optional<EmployeeCompensation1> recordPreparation(CSVRecord record) throws ParseException{
-			long id = record.getRecordNumber();
+			logger.info(String.format("parsing csv records"));
+            long id = record.getRecordNumber();
 			Date timeStamp = formatter1.parse(record.get("Timestamp"));
 			Integer age = processAge(record.get("How old are you?"));
 			String currentWorkingIndustry = record.get("What industry do you work in?");
