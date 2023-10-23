@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch.core.search.SourceConfig;
 import co.elastic.clients.json.JsonData;
 import lombok.val;
 
@@ -119,12 +118,4 @@ public class ElasticSearchUtil {
         return matchQuery.field("id").query(id)
         .build();
     }
-
-    // public static Supplier<Query> sparse_field_supplier(String orDefault) {
-    //     // Supplier<Query> supplier = () -> Query.of(q -> q.());
-    //     // return supplier;
-
-    // }
-
-
 }

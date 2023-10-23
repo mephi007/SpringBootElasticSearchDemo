@@ -36,12 +36,7 @@ public class ElasticSearchService {
         Supplier<Query> supplier = ElasticSearchUtil.supplier();
         SearchResponse<EmployeeCompensation1> searchResponse = elasticsearchClient.search(s -> s.index("employee_compensation_1").query(supplier.get()), EmployeeCompensation1.class);
         System.out.println("elasticsearch query is --> " + supplier.get().toString());
-        List<Hit<EmployeeCompensation1>>  listOfHits= searchResponse.hits().hits();
-        List<EmployeeCompensation1> listOfEmps = new ArrayList<>();
-        for(Hit<EmployeeCompensation1> hit : listOfHits){
-            listOfEmps.add(hit.source());
-        }
-        return listOfEmps;
+        return getListOfEmployees(searchResponse);
     }
 
     /*
@@ -53,12 +48,7 @@ public class ElasticSearchService {
         List<SortOptions> sortList =  ElasticSearchUtil.getSortingList(map);
         SearchResponse<EmployeeCompensation1> searchResponse = elasticsearchClient.search(s -> s.index("employee_compensation_1").query(supplier.get()).sort(sortList), EmployeeCompensation1.class);
         System.out.println("elasticsearch query is --> " + supplier.get().toString());
-        List<Hit<EmployeeCompensation1>>  listOfHits= searchResponse.hits().hits();
-        List<EmployeeCompensation1> listOfEmps = new ArrayList<>();
-        for(Hit<EmployeeCompensation1> hit : listOfHits){
-            listOfEmps.add(hit.source());
-        }
-        return listOfEmps;
+        return getListOfEmployees(searchResponse);
     }
 
     /*
@@ -69,14 +59,9 @@ public class ElasticSearchService {
         Supplier<Query> supplier = ElasticSearchUtil.supplierWithId(id);
         SearchResponse<EmployeeCompensation1> searchResponse = elasticsearchClient.search(s -> s.index("employee_compensation_1").query(supplier.get()), EmployeeCompensation1.class);
         System.out.println("elasticsearch query is --> " + supplier.get().toString());
-        List<Hit<EmployeeCompensation1>>  listOfHits= searchResponse.hits().hits();
-        List<EmployeeCompensation1> listOfEmps = new ArrayList<>();
-        for(Hit<EmployeeCompensation1> hit : listOfHits){
-            listOfEmps.add(hit.source());
-        }
+        List<EmployeeCompensation1> listOfEmps = getListOfEmployees(searchResponse);
         return listOfEmps.size() == 0 ? new EmployeeCompensation1() : listOfEmps.get(0);
     }
-
 
     /*
      * service method that would get elastic query from EmployeeCompensation1Repository based on id
@@ -88,6 +73,7 @@ public class ElasticSearchService {
         return op.get();
     }
 
+
     public List<EmployeeCompensation1> getCompensationDataToSpecificFieldsOnly(Map<String, String> map) throws ElasticsearchException, IOException {
         Supplier<Query> supplier = ElasticSearchUtil.supplier();
         final int size = Integer.parseInt(map.getOrDefault("size", "1"));
@@ -95,6 +81,10 @@ public class ElasticSearchService {
         SourceConfig sparseFields = SourceConfig.of(sc -> sc.filter(f -> f.includes(fields)));
         SearchResponse<EmployeeCompensation1> searchResponse = elasticsearchClient.search(s -> s.index("employee_compensation_1").source(sparseFields).size(size).query(supplier.get()), EmployeeCompensation1.class);
         System.out.println("elasticsearch query is --> " + supplier.get().toString());
+        return getListOfEmployees(searchResponse);
+    }
+
+    private List<EmployeeCompensation1> getListOfEmployees(SearchResponse<EmployeeCompensation1> searchResponse) {
         List<Hit<EmployeeCompensation1>>  listOfHits= searchResponse.hits().hits();
         List<EmployeeCompensation1> listOfEmps = new ArrayList<>();
         for(Hit<EmployeeCompensation1> hit : listOfHits){
