@@ -72,15 +72,16 @@ public class CompensationDataController {
         uses es util search query
     */
     @RequestMapping(value="/compensation_data/getAllEmployee", method= RequestMethod.GET)
-    public List<EmployeeCompensation1> matchAllEmployeeCompensation() {
+    public ResponseEntity<List<EmployeeCompensation1>> matchAllEmployeeCompensation() {
         List<EmployeeCompensation1> result = new ArrayList<>();
         try{
             logger.info(String.format("getting all the compensation data"));
             result = elasticSearchService.matchAllEmployeeCompensation1Service();
         }catch(Exception e){
-            logger.error(String.format("request failed"));
+            logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return result;
+        return  new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /*
@@ -90,15 +91,16 @@ public class CompensationDataController {
      * uses es util search boolquery
      */
     @RequestMapping(value="/compensation_data/filter", method= RequestMethod.GET)
-    public List<EmployeeCompensation1> getCompensationData(@RequestParam Map<String,String> map) throws ElasticsearchException, IOException{
+    public ResponseEntity<List<EmployeeCompensation1>> getCompensationData(@RequestParam Map<String,String> map){
         List<EmployeeCompensation1> result = new ArrayList<>();
         try {
             logger.info(String.format("getting compensation data on filter"));
             result =  elasticSearchService.getCompensationData(map);
         } catch (Exception e) {
-            logger.error(String.format("request failed"));
+           logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return result;
+        return  new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /*
@@ -108,15 +110,16 @@ public class CompensationDataController {
      *     
      */
     @RequestMapping(value="/compensation_data/{id}", method= RequestMethod.GET)
-    public EmployeeCompensation1 getSingleCompensationData(@PathVariable String id ) throws ElasticsearchException, IOException{
+    public ResponseEntity<EmployeeCompensation1> getSingleCompensationData(@PathVariable String id ){
         EmployeeCompensation1 emp = null;
         try {
             logger.info(String.format("getting compensation data on id"));
             emp = elasticSearchService.matchEmployeeById(id);
         } catch (Exception e) {
-            logger.error(String.format("request failed"));
+            logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return emp;
+        return  new ResponseEntity<>(emp, HttpStatus.OK);
     }
 
     /*
@@ -132,8 +135,9 @@ public class CompensationDataController {
             emp =  elasticSearchService.findById(id);
         } catch (Exception e) {
             logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            // return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return emp;
+        return  emp;
     }
 
     /*
@@ -154,9 +158,10 @@ public class CompensationDataController {
         ExecutionResult result = null;
         try {
             logger.info(String.format("getting compensation field only data on id using graphql"));
-        result = graphQl.execute(query);
+            result = graphQl.execute(query);
         } catch (Exception e) {
             logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
        return new ResponseEntity<Object>(result, HttpStatus.OK);
     }
@@ -170,14 +175,15 @@ public class CompensationDataController {
      *     http://localhost:8081/compensation_data/sparse?fields=id,age,current_working_industry
      */ 
     @RequestMapping(value="/compensation_data/sparse", method= RequestMethod.GET)
-    public List<EmployeeCompensation1> getCompensationDataToSpecificFieldOnly(@RequestParam Map<String,String> map){
-        List<EmployeeCompensation1> emp = null;
+    public ResponseEntity<List<EmployeeCompensation1>> getCompensationDataToSpecificFieldOnly(@RequestParam Map<String,String> map){
+        List<EmployeeCompensation1> emps = null;
         try {
             logger.info(String.format("getting compensation field only data on id using es utils search and source"));
-            emp = elasticSearchService.getCompensationDataToSpecificFieldsOnly(map);
+            emps = elasticSearchService.getCompensationDataToSpecificFieldsOnly(map);
         } catch (Exception e) {
             logger.error(String.format("request failed --> %s", e.getLocalizedMessage()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return emp;
+        return new ResponseEntity<>(emps, HttpStatus.OK);
     }
 }
