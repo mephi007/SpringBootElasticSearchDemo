@@ -1,0 +1,21 @@
+schema{
+    query : Query
+}
+
+type Query{
+getCompensationDataById(id: String): EmployeeCompensation1
+}
+
+type EmployeeCompensation1{
+    id: String,
+    timestamp: String,
+    age: String,
+    current_working_industry: String,
+    current_location: String,
+    total_years_of_experience: String,
+    job_title: String,
+    annual_salary: String,
+    currency: String,
+    additional_job_responsibility: String,
+    additional_salary_info: String
+}
